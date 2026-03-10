@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Action Recognition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            max-width: 150px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        main {
+            display: grid;
+            gap: 30px;
+        }
+
+        section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .placeholder-content {
+            color: #7f8c8d;
+            font-style: italic;
+            line-height: 1.8;
+        }
+
+        .dataset-controls {
+            margin-bottom: 20px;
+        }
+
+        .action-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+            min-width: 200px;
+        }
+
+        select:hover {
+            border-color: #764ba2;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .video-container {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-info {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .no-video {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .panel-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-content {
+            padding: 25px;
+        }
+
+        .panel-content p {
+            color: #495057;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .panel-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .panel-content li {
+            padding: 8px 0;
+            color: #6c757d;
+            font-size: 0.9em;
+            position: relative;
+            padding-left: 25px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .panel-content li:last-child {
+            border-bottom: none;
+        }
+
+        .panel-content li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .methodology-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .method-section {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .method-section:hover {
+            background: #e9ecef;
+            border-left-color: #764ba2;
+            transform: translateX(5px);
+        }
+
+        .method-section h3 {
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .method-section p {
+            color: #495057;
+            line-height: 1.6;
+            margin: 0;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            section {
+                padding: 20px;
+            }
+
+            .action-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            select {
+                width: 100%;
+            }
+
+            .panels-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .panel {
+                border-radius: 10px;
+            }
+
+            .panel-header {
+                padding: 15px;
+            }
+
+            .panel-header h3 {
+                font-size: 1.1em;
+            }
+
+            .panel-content {
+                padding: 20px;
+            }
+
+            .methodology-content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .method-section {
+                padding: 15px;
+            }
+
+            .method-section h3 {
+                font-size: 1.1em;
+            }
+        }
+        th.slashbox {
+            position: relative;
+            width: 120px;
+            height: 80px;
+            padding: 0;
+        }
+
+        th.slashbox::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to top right,
+                transparent 49.5%,
+                #005a70 50%,
+                #005a70 50.5%,
+                transparent 50.5%
+            );
+            pointer-events: none;
+        }
+
+        th.slashbox .top-left {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+        }
+
+        th.slashbox .bottom-right {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="figures/hria_logo.png" alt="HRIA Logo" class="logo">
+            </div>
+            <h1>HRIA - Hub Român de Inteligență Artificială</h1>
+            <h2>Human action recognition (HAR)</h2>
+            <p class="subtitle">AI-powered human action recognition and analysis</p>
+        </header>
+
+        <main>
+            <section id="project-description">
+                <h2>Project Description</h2>
+                <div class="placeholder-content">
+                    <div class="panels-container">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>The Task</h3>
+                            </div>
+                            <div class="panel-content">
+                                <p>Creating a comprehensive human action dataset with compatibility to NTU-RGBD action classes. Our approach leverages existing advanced methods to generate both 2D pose data and 3D skeletal information from video sequences.</p>
+                                <ul>
+                                    <li>NTU-RGBD action compatibility</li>
+                                    <li>2D pose extraction using state-of-the-art methods</li>
+                                    <li>3D skeletal reconstruction algorithms</li>
+                                    <li>Standardized action labeling system</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>Significance</h3>
+                            </div>
+                            <div class="panel-content">
+                                <p>Building this dataset to align with established benchmarks ensures our raw data is high-quality, organized, and ready for future AI applications:</p>
+                                <ul>
+                                    <li>Methodological standardization: Actions match the labels from NTU-RGBD.</li>
+                                    <li>Cross-domain generalization: Unique movement patterns of already existing actions.</li>
+                                    <li>Transferability and compatibility: Action compatibility facilitates the future application of transfer-learning techniques.</li>
+                                    <li>Benchmark interoperability: Consistency in action definitions ensure that findings can be directly compared to known benchmarks.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3>Demonstrator Purpose</h3>
+                            </div>
+                            <div class="panel-content">
+                                <p>This interactive viewer serves as a comprehensive exploration tool for researchers and developers to visualize, analyze, and understand the generated dataset contents and action classifications.</p>
+                                <ul>
+                                    <li>Interactive dataset browsing</li>
+                                    <li>Visual quality assessment</li>
+                                    <li>Action category verification</li>
+                                    <li>Visualization of some experimental results</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- <section id="goals">
+                <h2>Project Goals</h2>
+                <div class="placeholder-content">
+                    <ul style="list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>High Accuracy:</strong> Achieve >95% accuracy in action classification across diverse datasets
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>Real-time Processing:</strong> Enable real-time action recognition with minimal latency
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>Multi-person Support:</strong> Handle multiple subjects simultaneously in complex scenes
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>Robust Performance:</strong> Maintain accuracy across different lighting conditions, camera angles, and backgrounds
+                        </li>
+                        <li style="margin-bottom: 15px; padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>Scalable Architecture:</strong> Design a system that can be easily extended with new action classes and improved models
+                        </li>
+                        <li style="padding-left: 25px; position: relative;">
+                            <span style="position: absolute; left: 0; color: #667eea;">▶</span>
+                            <strong>Practical Applications:</strong> Deploy the system in real-world scenarios including healthcare, sports, and security
+                        </li>
+                    </ul>
+                </div>
+            </section> -->
+
+            <section id="methodology">
+                <h2>Methodology</h2>
+                <div class="placeholder-content">
+                    <div class="methodology-content">
+                        <div class="method-section">
+                            <h3>Data Collection</h3>
+                            <p>The dataset was collected inside the Precis building of the UPB campus with volunteer students as the main subjects for performing actions. Short sequences were recorded using simple camera hardware. The actions are compatible with those found in NTU-RGBD and for the same action, multiple subjects and recording locations were used. Additionally, besides actions found in NTU-RGBD, sequences of composite actions were recorded.</p>
+                        </div>
+                        
+                        <div class="method-section">
+                            <h3>2D Skeleton Extraction</h3>
+                            <p>Many action recognition systems solely rely on 2D keypoints as inputs. To generate the 2D skeleton and keypoints for each recorded video, we used the HRNet method.</p>
+                        </div>
+                        
+                        <div class="method-section">
+                            <h3>3D Skeleton Reconstruction</h3>
+                            <p>Since our dataset uses only RGB cameras for scene collection, ground truth 3D keypoints and skeletons are missing. These usually require complex suits for data collection. In order to generate data for 3D keypoints, we resort to a state of art approach for 3D liftup from 2D input sequences.</p>
+                        </div>
+                        
+                        <div class="method-section">
+                            <h3>Custom method for few-shot action recognition</h3>
+                            <p>One of our current experiments relies on using a state of art approach for liftup and adding a semantic alignment loss to force internal representation to get close to tokenized verbal descriptions of actions. While this was initially intended for improving liftup performance, we observed it could be used for action understanding instead.</p>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <img src="figures/semantic_loss.png" alt="Semantic Loss Visualization" style="max-width: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.3s ease;" onclick="openImageModal('figures/semantic_loss.png')">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dataset-exploration">
+                <h2>Dataset Exploration</h2>
+                <div class="dataset-controls">
+                    <div class="action-selector">
+                        <label for="action-select">Select Action:</label>
+                        <select id="action-select">
+                            <option value="">Choose an action...</option>
+                        </select>
+                    </div>
+                    <div class="video-controls">
+                        <button id="prev-video" disabled>Previous Video</button>
+                        <button id="next-video" disabled>Next Video</button>
+                        <span id="video-counter" style="margin-left: 15px; color: #7f8c8d;"></span>
+                    </div>
+                </div>
+                <div id="video-display">
+                    <div class="no-video">
+                        Please select an action from the dropdown to explore videos
+                    </div>
+                </div>
+            </section>
+
+            <section id="experimental-observations">
+                <h2>Experimental Observations</h2>
+                <div class="placeholder-content">
+                    <style>
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            font-size: 0.9em;
+                            min-width: 400px;
+                            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+                        }
+                        
+                        table th {
+                            background-color: #009879;
+                            color: #ffffff;
+                            text-align: left;
+                            padding: 12px 15px;
+                            font-weight: 600;
+                            border: 1px solid #005a70;
+                        }
+                        
+                        table td {
+                            padding: 12px 15px;
+                            border: 1px solid #dddddd;
+                            text-align: center;
+                        }
+                        
+                        table tbody tr:nth-of-type(even) {
+                            background-color: #f8f9fa;
+                        }
+                        
+                        table tbody tr:last-of-type td {
+                            border-bottom: 2px solid #009879;
+                        }
+                        
+                        table tbody tr.active-row {
+                            font-weight: bold;
+                            color: #009879;
+                            background-color: #e8f5e8;
+                        }
+                        
+                        .dataset-name {
+                            font-weight: bold;
+                            text-align: left;
+                        }
+                        
+                        .better-value {
+                            color: #28a745;
+                            font-weight: bold;
+                        }
+                        
+                        .worse-value {
+                            color: #dc3545;
+                            font-weight: bold;
+                        }
+                        
+                        .slash-box {
+                            position: relative;
+                            width: 120px;
+                            height: 60px;
+                            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                            border: 1px solid #009879;
+                            overflow: hidden;
+                        }
+                        
+                        .slash-box::before {
+                            content: '';
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: linear-gradient(45deg, transparent 49.5%, #009879 49.5%, #009879 50.5%, transparent 50.5%);
+                        }
+                        
+                        .slash-box .dataset {
+                            position: absolute;
+                            top: 10px;
+                            left: 10px;
+                            font-weight: bold;
+                            color: #009879;
+                            z-index: 1;
+                        }
+                        
+                        .slash-box .model {
+                            position: absolute;
+                            bottom: 10px;
+                            right: 10px;
+                            font-weight: bold;
+                            color: #009879;
+                            z-index: 1;
+                        }
+                    </style>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="3" class="slashbox">
+                                    <span class="top-left">Model</span>
+                                    <span class="bottom-right">Dataset</span>
+                                </th>
+                                <th colspan="5">Humans3.6M</th>
+                                <th colspan="5">MPI-INF-3DHP (Trained on Humans3.6M)</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4"></th>
+                                <th rowspan="2">Depth ranking accuracy (%) &uarr;</th>
+                                <th colspan="4"></th>
+                                <th rowspan="2">Depth ranking accuracy (%) &uarr;</th>
+                            </tr>
+                            <tr>
+                                <th>MPJPE (mm) &darr;</th>
+                                <th>P-MPJPE (mm) &darr;</th>
+                                <th>Acceleration error (mm/s²) &darr;</th>
+                                <th>Bone length error (mm) &darr;</th>
+                                <th>MPJPE (mm) &darr;</th>
+                                <th>P-MPJPE (mm) &darr;</th>
+                                <th>Acceleration error (mm/s²) &darr;</th>
+                                <th>Bone length error (mm) &darr;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="dataset-name">MotionAGFormer-Small</td>
+                                <td class="better-value">42.51</td>
+                                <td class="better-value">35.32</td>
+                                <td class="better-value">0.90</td>
+                                <td class="better-value">4.70</td>
+                                <td>96.07</td>
+                                <td>429.98</td>
+                                <td>319.44</td>
+                                <td></td>
+                                <td></td>
+                                <td>40.50</td>
+                            </tr>
+                            <tr>
+                                <td class="dataset-name">MotionAGFormer-Small-Semantic</td>
+                                <td>43.25</td>
+                                <td>35.62</td>
+                                <td>0.93</td>
+                                <td>5.03</td>
+                                <td class="better-value">96.11</td>
+                                <td class="better-value">398.92</td>
+                                <td class="better-value">292.11</td>
+                                <td></td>
+                                <td></td>
+                                <td class="better-value">41.10</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="text-align: center; margin-top: 15px; font-style: italic; color: #6c757d; font-size: 0.9em;">
+                        Table 1: Performance comparison of MotionAGFormer models on 3D human pose estimation tasks. The semantic variant shows slightly improved cross-dataset generalization.
+                    </p>
+                    
+                    <div style="margin-top: 40px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 20px; font-size: 1.4em; border-bottom: 2px solid #667eea; padding-bottom: 8px;">t-SNE Visualization of Latent Space</h3>
+                        
+                        <!-- Training Set t-SNE Plots -->
+                        <div style="margin-bottom: 30px;">
+                            <h4 style="color: #495057; margin-bottom: 15px; font-size: 1.1em;">Training Set Latent Space</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                                <div style="text-align: center;">
+                                    <img src="figures/tsne_train_paper.png" alt="t-SNE Training - Paper Prompts" style="width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.3s ease;" onclick="openImageModal('figures/tsne_train_paper.png')">
+                                    <p style="margin-top: 10px; font-size: 0.9em; color: #6c757d; font-style: italic;">Without Semantic Loss</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <img src="figures/tsne_train_elaboratedprompts.png" alt="t-SNE Training - Elaborated Prompts" style="width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.3s ease;" onclick="openImageModal('figures/tsne_train_elaboratedprompts.png')">
+                                    <p style="margin-top: 10px; font-size: 0.9em; color: #6c757d; font-style: italic;">With Semantic Loss</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Set t-SNE Plots -->
+                        <div>
+                            <h4 style="color: #495057; margin-bottom: 15px; font-size: 1.1em;">Test Set Latent Space</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="text-align: center;">
+                                    <img src="figures/tsne_test_paper.png" alt="t-SNE Test - Paper Prompts" style="width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.3s ease;" onclick="openImageModal('figures/tsne_test_paper.png')">
+                                    <p style="margin-top: 10px; font-size: 0.9em; color: #6c757d; font-style: italic;">Without Semantic Loss</p>
+                                </div>
+                                <div style="text-align: center;">
+                                    <img src="figures/tsne_test_elaboratedprompts.png" alt="t-SNE Test - Elaborated Prompts" style="width: 100%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: transform 0.3s ease;" onclick="openImageModal('figures/tsne_test_elaboratedprompts.png')">
+                                    <p style="margin-top: 10px; font-size: 0.9em; color: #6c757d; font-style: italic;">With Semantic Loss</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p style="text-align: center; margin-top: 20px; font-style: italic; color: #6c757d; font-size: 0.85em;">
+                            Figure 1: t-SNE visualization comparing latent space representations. The semantic loss model shows better separation of action classes in both training and test sets.
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); backdrop-filter: blur(5px);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%;">
+            <img id="modalImage" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+        </div>
+        <span onclick="closeImageModal()" style="position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; transition: color 0.3s ease;">&times;</span>
+    </div>
+
+    <script>
+        class DatasetExplorer {
+            constructor() {
+                this.actions = [];
+                this.currentAction = null;
+                this.currentVideoIndex = 0;
+                this.videos = [];
+                
+                this.initializeElements();
+                this.loadActions();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                this.actionSelect = document.getElementById('action-select');
+                this.prevButton = document.getElementById('prev-video');
+                this.nextButton = document.getElementById('next-video');
+                this.videoCounter = document.getElementById('video-counter');
+                this.videoDisplay = document.getElementById('video-display');
+            }
+
+            async loadActions() {
+                try {
+                    // Load actual actions from the dataset
+                    this.actions = [
+                        { id: 'a1_drink_water', name: 'Drink Water' },
+                        { id: 'a2_eat_meal_snack', name: 'Eat Meal/Snack' },
+                        { id: 'a8_sitting_down', name: 'Sitting Down' },
+                        { id: 'a9_standing_up', name: 'Standing Up' },
+                        { id: 'a41_sneeze_cough', name: 'Sneeze/Cough' },
+                        { id: 'a42_staggering', name: 'Staggering' },
+                        { id: 'a44_touch_head', name: 'Touch Head' },
+                        { id: 'a45_touch_chest', name: 'Touch Chest' },
+                        { id: 'a46_touch_back', name: 'Touch Back' },
+                        { id: 'a47_touch_neck', name: 'Touch Neck' },
+                        { id: 'a48_nausea_or_vomiting_condition', name: 'Nausea/Vomiting' },
+                        { id: 'a49_use_a_fan', name: 'Use a Fan' },
+                        { id: 'a80_squat_down', name: 'Squat Down' },
+                        { id: 'a97_arm_circles', name: 'Arm Circles' },
+                        { id: 'a98_arm_swings', name: 'Arm Swings' },
+                        { id: 'a101_cross_toe_touch', name: 'Cross Toe Touch' },
+                        { id: 'a103_yawn', name: 'Yawn' },
+                        { id: 'a104_stretch_oneself', name: 'Stretch Oneself' },
+                        { id: 'a105_blow_nose', name: 'Blow Nose' },
+                        { id: 'a28_make_a_phone_call_answer_phone', name: 'Make Phone Call/Answer Phone' },
+                        { id: 'a31_pointing_to_something_with_finger', name: 'Pointing to Something' },
+                        { id: 'a33_check_time', name: 'Check Time' },
+                        { id: 'c1_action_c1', name: 'Action C1' },
+                        { id: 'c2_action_c2', name: 'Action C2' }
+                    ];
+
+                    this.populateActionSelect();
+                } catch (error) {
+                    console.error('Error loading actions:', error);
+                    this.showError('Failed to load actions');
+                }
+            }
+
+            populateActionSelect() {
+                this.actionSelect.innerHTML = '<option value="">Choose an action...</option>';
+                
+                this.actions.forEach(action => {
+                    const option = document.createElement('option');
+                    option.value = action.id;
+                    option.textContent = action.name;
+                    this.actionSelect.appendChild(option);
+                });
+            }
+
+            async loadVideosForAction(actionId) {
+                try {
+                    // Define the actual webp files for each action
+                    const videoMap = {
+                        'a101_cross_toe_touch': ["Camera1_135_A101.webp", "Camera1_159_A101.webp", "Camera1_173_A101.webp", "Camera2_158_A101.webp", "Camera2_188_A101.webp"],
+                        'a103_yawn': ["Camera1_49_A103.webp", "Camera1_9_A103.webp", "Camera2_72_A103.webp", "Camera2_76_A103.webp"],
+                        'a104_stretch_oneself': ["Camera1_109_A104.webp", "Camera1_23_A104.webp", "Camera1_35_A104.webp", "Camera1_47_A104.webp", "Camera2_10_A104.webp", "Camera2_48_A104.webp"],
+                        'a105_blow_nose': ["Camera1_17_A105.webp", "Camera1_67_A105.webp", "Camera1_7_A105.webp", "Camera2_48_A105.webp", "Camera2_58_A105.webp"],
+                        'a1_drink_water': ["Camera1_129_A1-v2.webp", "Camera1_147_A1-v1.webp", "Camera1_171_A1-v1.webp", "Camera2_150_A1-v1.webp"],
+                        'a28_make_a_phone_call_answer_phone': ["Camera1_147_A28.webp", "Camera1_169_A28.webp", "Camera2_162_A28.webp", "Camera2_186_A28.webp", "Camera2_190_A28.webp"],
+                        'a2_eat_meal_snack': ["Camera1_131_A2.webp", "Camera1_147_A2.webp", "Camera1_165_A2.webp", "Camera2_146_A2.webp", "Camera2_192_A2.webp"],
+                        'a31_pointing_to_something_with_finger': ["Camera1_141_A31.webp", "Camera1_171_A31.webp", "Camera1_175_A31.webp", "Camera2_162_A31.webp", "Camera2_168_A31.webp"],
+                        'a33_check_time': ["Camera1_141_A33.webp", "Camera1_167_A33.webp", "Camera2_154_A33.webp", "Camera2_180_A33.webp", "Camera2_188_A33.webp"],
+                        'a41_sneeze_cough': ["Camera1_33_A41.webp", "Camera1_47_A41.webp", "Camera2_125_A41.webp", "Camera2_26_A41.webp", "Camera2_54_A41.webp"],
+                        'a42_staggering': ["Camera1_13_A42.webp", "Camera1_43_A42.webp", "Camera1_79_A42.webp", "Camera2_50_A42.webp"],
+                        'a44_touch_head': ["Camera1_13_A44.webp", "Camera1_5_A44.webp", "Camera1_63_A44.webp", "Camera2_16_A44.webp", "Camera2_60_A44.webp"],
+                        'a45_touch_chest': ["Camera1_53_A45.webp", "Camera1_57_A45.webp", "Camera2_121_A45.webp", "Camera2_4_A45.webp", "Camera2_78_A45.webp"],
+                        'a46_touch_back': ["Camera1_113_A46.webp", "Camera1_17_A46.webp", "Camera1_59_A46.webp", "Camera1_79_A46.webp", "Camera2_60_A46.webp"],
+                        'a47_touch_neck': ["Camera1_27_A47.webp", "Camera1_59_A47.webp", "Camera2_102_A47.webp", "Camera2_16_A47.webp"],
+                        'a48_nausea_or_vomiting_condition': ["Camera1_49_A48.webp", "Camera1_5_A48.webp", "Camera1_65_A48.webp", "Camera1_7_A48.webp", "Camera2_48_A48.webp"],
+                        'a49_use_a_fan': ["Camera1_59_A49.webp", "Camera1_69_A49.webp", "Camera2_112_A49.webp", "Camera2_12_A49.webp", "Camera2_58_A49.webp"],
+                        'a80_squat_down': ["Camera1_133_A80.webp", "Camera1_161_A80.webp", "Camera2_150_A80.webp", "Camera2_170_A80.webp", "Camera2_190_A80.webp"],
+                        'a8_sitting_down': ["Camera1_157_A8.webp", "Camera1_181_A8.webp", "Camera2_158_A8.webp", "Camera2_168_A8.webp", "Camera2_188_A8.webp"],
+                        'a97_arm_circles': ["Camera1_169_A97.webp", "Camera1_175_A97.webp", "Camera2_132_A97.webp", "Camera2_154_A97.webp", "Camera2_192_A97.webp"],
+                        'a98_arm_swings': ["Camera1_135_A98.webp", "Camera1_153_A98.webp", "Camera1_167_A98.webp", "Camera2_158_A98.webp", "Camera2_166_A98.webp"],
+                        'a9_standing_up': ["Camera1_143_A9.webp", "Camera1_163_A9.webp", "Camera2_130_A9.webp", "Camera2_154_A9.webp", "Camera2_168_A9.webp"],
+                        'c1_action_c1': ["Camera1_137_C1.webp", "Camera1_149_C1.webp", "Camera1_183_C1.webp", "Camera1_191_C1.webp", "Camera2_190_C1.webp"],
+                        'c2_action_c2': ["Camera1_131_C2.webp", "Camera1_133_C2.webp", "Camera1_163_C2.webp", "Camera2_178_C2.webp", "Camera2_184_C2.webp"]
+                    };
+
+                    this.videos = videoMap[actionId] || [];
+                    this.currentVideoIndex = 0;
+                    
+                    if (this.videos.length > 0) {
+                        this.enableControls();
+                        this.displayVideo();
+                    } else {
+                        this.showNoVideos();
+                    }
+                } catch (error) {
+                    console.error('Error loading videos:', error);
+                    this.showError('Failed to load videos');
+                }
+            }
+
+            displayVideo() {
+                if (this.videos.length === 0) {
+                    this.showNoVideos();
+                    return;
+                }
+
+                const currentVideo = this.videos[this.currentVideoIndex];
+                const videoPath = `har_dataset_movies/${this.currentAction}/${currentVideo}`;
+                
+                console.log('Loading video:', videoPath);
+                
+                // Try the simplest approach first
+                this.videoDisplay.innerHTML = `
+                    <div class="video-container">
+                        <img src="${videoPath}" style="width: 100%; max-height: 500px; object-fit: contain;" alt="${currentVideo}">
+                        <div class="video-info">
+                            ${currentVideo} - ${this.getActionName(this.currentAction)}
+                        </div>
+                    </div>
+                `;
+
+                this.updateCounter();
+                this.updateButtonStates();
+            }
+
+            tryAlternativeLoading(currentVideo) {
+                console.log('Trying alternative loading method...');
+                
+                // Try with fetch first
+                const videoPath = `har_dataset_movies/${this.currentAction}/${currentVideo}`;
+                
+                fetch(videoPath)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        console.log('Fetch successful, response:', response);
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        console.log('Video blob created, size:', blob.size);
+                        const url = URL.createObjectURL(blob);
+                        
+                        const video = document.getElementById('main-video');
+                        if (video) {
+                            const newSource = document.createElement('source');
+                            newSource.src = url;
+                            newSource.type = 'video/mp4';
+                            
+                            // Clear existing sources
+                            video.innerHTML = '';
+                            video.appendChild(newSource);
+                            video.load();
+                            
+                            console.log('Video loaded from blob URL');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Alternative loading failed:', error);
+                        this.showError(`Failed to load video: ${currentVideo}. ${error.message}`);
+                    });
+            }
+
+            showNoVideos() {
+                this.videoDisplay.innerHTML = `
+                    <div class="no-video">
+                        No videos found for this action
+                    </div>
+                `;
+                this.disableControls();
+            }
+
+            showError(message) {
+                this.videoDisplay.innerHTML = `
+                    <div class="no-video" style="color: #e74c3c;">
+                        Error: ${message}
+                    </div>
+                `;
+                this.disableControls();
+            }
+
+            getActionName(actionId) {
+                const action = this.actions.find(a => a.id === actionId);
+                return action ? action.name : actionId;
+            }
+
+            updateCounter() {
+                this.videoCounter.textContent = 
+                    `Video ${this.currentVideoIndex + 1} of ${this.videos.length}`;
+            }
+
+            updateButtonStates() {
+                this.prevButton.disabled = this.currentVideoIndex === 0;
+                this.nextButton.disabled = this.currentVideoIndex === this.videos.length - 1;
+            }
+
+            enableControls() {
+                this.prevButton.disabled = false;
+                this.nextButton.disabled = false;
+            }
+
+            disableControls() {
+                this.prevButton.disabled = true;
+                this.nextButton.disabled = true;
+                this.videoCounter.textContent = '';
+            }
+
+            bindEvents() {
+                this.actionSelect.addEventListener('change', (e) => {
+                    const actionId = e.target.value;
+                    if (actionId) {
+                        this.currentAction = actionId;
+                        this.loadVideosForAction(actionId);
+                    } else {
+                        this.currentAction = null;
+                        this.videos = [];
+                        this.videoDisplay.innerHTML = `
+                            <div class="no-video">
+                                Please select an action from the dropdown to explore videos
+                            </div>
+                        `;
+                        this.disableControls();
+                    }
+                });
+
+                this.prevButton.addEventListener('click', () => {
+                    if (this.currentVideoIndex > 0) {
+                        this.currentVideoIndex--;
+                        this.displayVideo();
+                    }
+                });
+
+                this.nextButton.addEventListener('click', () => {
+                    if (this.currentVideoIndex < this.videos.length - 1) {
+                        this.currentVideoIndex++;
+                        this.displayVideo();
+                    }
+                });
+            }
+        }
+
+        // Initialize the dataset explorer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DatasetExplorer();
+        });
+
+        // Modal functions for image zoom
+        function openImageModal(imageSrc) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImageModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+    </script>
+</body>
+</html>
